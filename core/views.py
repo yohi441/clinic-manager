@@ -195,11 +195,13 @@ def patient_form(request, pk=None):
                 })
             return redirect('/')
         if request.headers.get('HX-Request'):
-            return render(request, 'dashboard.html#patient_form', {
+            response = render(request, 'dashboard.html#patient_form', {
                 'form': form,
                 'patient': patient,
                 'legend': legend,
             })
+            response['HX-Retarget'] = '#modal-container'
+            return response
     else:
         form = PatientForm(instance=patient)
 
