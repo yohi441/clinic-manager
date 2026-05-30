@@ -56,6 +56,8 @@ a = Analysis(
         'core.migrations',
         'core.middleware',
         'template_partials',
+        'template_partials.loader',
+        'template_partials.templatetags',
         'template_partials.templatetags.partials',
     ],
     hookspath=[],
