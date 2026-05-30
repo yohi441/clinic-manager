@@ -6,12 +6,18 @@ from pathlib import Path
 
 block_cipher = None
 
-PROJ = Path.cwd()
+PROJ = Path.cwd().resolve()
 
-# Validate required dirs
-for d in ['conf', 'core', 'templates']:
-    if not (PROJ / d).is_dir():
-        warnings.warn(f'Missing directory: {PROJ / d}')
+print(f'[build] CWD = {Path.cwd()}')
+print(f'[build] PROJ = {PROJ}')
+
+# Validate project root
+for name in ['manage.py', 'conf', 'core', 'templates']:
+    path = PROJ / name
+    exists = path.exists()
+    print(f'[build]   {name} -> {path}  exists={exists}')
+    if not exists:
+        raise SystemExit(f'ERROR: {path} not found. Run pyinstaller from the project root.')
 
 # Migrate + collectstatic before bundling
 python = sys.executable
@@ -31,6 +37,12 @@ if not db.exists():
         f'ERROR: {db} not found.\n'
         f'Run "python manage.py migrate && python manage.py createsuperuser" first.'
     )
+
+staticfiles_dir = PROJ / 'staticfiles'
+if not staticfiles_dir.is_dir():
+    raise SystemExit(f'ERROR: {staticfiles_dir} not found. collectstatic may have failed.')
+
+print(f'[build] All checks passed — starting PyInstaller analysis')
 
 a = Analysis(
     ['manage.py'],

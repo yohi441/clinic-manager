@@ -20,9 +20,15 @@ _FROZEN = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
 # Build paths
 BASE_DIR = Path(sys._MEIPASS if _FROZEN else __file__).resolve().parent.parent
 if _FROZEN:
-    print(f'[debug] BASE_DIR={BASE_DIR}')
-    print(f'[debug] templates dir={(BASE_DIR / "templates").exists()}')
-    print(f'[debug] login.html={(BASE_DIR / "templates" / "registration" / "login.html").exists()}')
+    import os
+    print(f'[debug] BASE_DIR={BASE_DIR}', flush=True)
+    print(f'[debug] MEIPASS={sys._MEIPASS}', flush=True)
+    print(f'[debug] BASE_DIR contents: {os.listdir(BASE_DIR)[:30] if os.path.isdir(BASE_DIR) else "NOT_A_DIR"}', flush=True)
+    tdir = BASE_DIR / 'templates'
+    if tdir.is_dir():
+        print(f'[debug] templates/ contents: {os.listdir(tdir)}', flush=True)
+    else:
+        print(f'[debug] templates/ NOT FOUND in BASE_DIR', flush=True)
 
 # Data directory for writable files (DB, logs)
 if _FROZEN:
