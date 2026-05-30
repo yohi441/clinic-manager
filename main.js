@@ -1,5 +1,6 @@
 const { app, BrowserWindow } = require('electron');
 const { spawn } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 const net = require('net');
 const http = require('http');
@@ -34,23 +35,31 @@ function waitForServer(port, retries = 30) {
 app.whenReady().then(async () => {
   const port = await getFreePort();
   const isDev = !app.isPackaged;
+  const ext = process.platform === 'win32' ? '.exe' : '';
+
   let backendPath;
+  let args;
+  let cwd;
 
   if (isDev) {
-    backendPath = 'python';
+    // Prefer the built exe, fall back to python manage.py
+    const exePath = path.join(__dirname, 'dist', 'clinic-backend', `clinic-backend${ext}`);
+    if (fs.existsSync(exePath)) {
+      console.log(`[electron] Using built exe: ${exePath}`);
+      backendPath = exePath;
+      args = ['runserver', `127.0.0.1:${port}`, '--noreload'];
+    } else {
+      console.log('[electron] Using python manage.py (no built exe found)');
+      backendPath = 'python';
+      args = ['manage.py', 'runserver', `127.0.0.1:${port}`, '--noreload'];
+      cwd = __dirname;
+    }
   } else {
-    const ext = process.platform === 'win32' ? '.exe' : '';
     backendPath = path.join(process.resourcesPath, 'backend', `clinic-backend${ext}`);
+    args = ['runserver', `127.0.0.1:${port}`, '--noreload'];
   }
 
-  const args = isDev
-    ? ['manage.py', 'runserver', `127.0.0.1:${port}`, '--noreload']
-    : ['runserver', `127.0.0.1:${port}`, '--noreload'];
-
-  backendProcess = spawn(backendPath, args, {
-    cwd: isDev ? __dirname : undefined,
-    stdio: 'pipe',
-  });
+  backendProcess = spawn(backendPath, args, { cwd, stdio: 'pipe' });
 
   backendProcess.stdout.on('data', (d) => console.log(`[backend] ${d}`));
   backendProcess.stderr.on('data', (d) => console.error(`[backend] ${d}`));
