@@ -1,15 +1,24 @@
 # -*- mode: python ; coding: utf-8 -*-
-import os
 import sys
+import warnings
 from pathlib import Path
 
 block_cipher = None
 
-# Collect static files before building
-os.system(f'{sys.executable} manage.py collectstatic --noinput --clear')
+PROJ = Path(__file__).parent.resolve()
 
-# Paths relative to project root
-PROJ = Path(os.path.abspath('.'))
+# Validate required files
+required_dirs = ['conf', 'core', 'templates', 'staticfiles']
+for d in required_dirs:
+    if not (PROJ / d).is_dir():
+        warnings.warn(f'Missing directory: {PROJ / d}')
+
+db = PROJ / 'db.sqlite3'
+if not db.exists():
+    raise SystemExit(
+        f'ERROR: {db} not found.\n'
+        f'Run "python manage.py migrate && python manage.py createsuperuser" first.'
+    )
 
 a = Analysis(
     ['manage.py'],
@@ -20,7 +29,7 @@ a = Analysis(
         (str(PROJ / 'core'), 'core'),
         (str(PROJ / 'templates'), 'templates'),
         (str(PROJ / 'staticfiles'), 'staticfiles'),
-        (str(PROJ / 'db.sqlite3'), '.'),
+        (str(db), '.'),
     ],
     hiddenimports=[
         'django.contrib.admin',
