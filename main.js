@@ -43,7 +43,7 @@ app.whenReady().then(async () => {
 
   if (isDev) {
     // Prefer the built exe, fall back to python manage.py
-    const exePath = path.join(__dirname, 'dist', 'clinic-backend', `clinic-backend${ext}`);
+    const exePath = path.join(__dirname, 'dist', `clinic-backend${ext}`);
     if (fs.existsSync(exePath)) {
       console.log(`[electron] Using built exe: ${exePath}`);
       backendPath = exePath;

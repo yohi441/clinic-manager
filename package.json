@@ -20,9 +20,8 @@
     },
     "extraResources": [
       {
-        "from": "dist/clinic-backend",
-        "to": "backend",
-        "filter": ["**/*"]
+        "from": "dist/clinic-backend.exe",
+        "to": "backend"
       }
     ],
     "win": {
