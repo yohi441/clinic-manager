@@ -6,7 +6,7 @@ from pathlib import Path
 
 block_cipher = None
 
-PROJ = Path(__file__).parent.resolve()
+PROJ = Path.cwd()
 
 # Validate required dirs
 for d in ['conf', 'core', 'templates']:
