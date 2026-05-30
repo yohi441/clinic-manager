@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 import sys
 import warnings
 from pathlib import Path
@@ -8,12 +9,16 @@ block_cipher = None
 PROJ = Path(__file__).parent.resolve()
 
 # Validate required files
-required_dirs = ['conf', 'core', 'templates', 'staticfiles']
+required_dirs = ['conf', 'core', 'templates']
 for d in required_dirs:
     if not (PROJ / d).is_dir():
         warnings.warn(f'Missing directory: {PROJ / d}')
 
 db = PROJ / 'db.sqlite3'
+
+# Run migrations to ensure DB schema is up to date before bundling
+os.system(f'{sys.executable} "{PROJ / "manage.py"}" migrate --noinput')
+
 if not db.exists():
     raise SystemExit(
         f'ERROR: {db} not found.\n'
