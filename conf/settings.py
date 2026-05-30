@@ -10,22 +10,35 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
+import sys
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Detect PyInstaller bundle
+_FROZEN = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+
+# Build paths
+BASE_DIR = Path(sys._MEIPASS if _FROZEN else __file__).resolve().parent.parent
+
+# Data directory for writable files (DB, logs)
+if _FROZEN:
+    DATA_DIR = Path(os.environ.get('CLINIC_DATA_DIR', Path.home() / '.clinic-manager'))
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    # Copy bundled DB on first launch
+    bundled_db = BASE_DIR / 'db.sqlite3'
+    target_db = DATA_DIR / 'db.sqlite3'
+    if bundled_db.exists() and not target_db.exists():
+        import shutil
+        shutil.copy2(bundled_db, target_db)
+else:
+    DATA_DIR = BASE_DIR
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-efgkw+*ii!qivelh@c8ncxkbh536hbj(-wcadd5a96ic369klj'
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -82,7 +95,7 @@ WSGI_APPLICATION = 'conf.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DATA_DIR / 'db.sqlite3',
     }
 }
 
