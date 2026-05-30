@@ -19,6 +19,10 @@ _FROZEN = getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
 
 # Build paths
 BASE_DIR = Path(sys._MEIPASS if _FROZEN else __file__).resolve().parent.parent
+if _FROZEN:
+    print(f'[debug] BASE_DIR={BASE_DIR}')
+    print(f'[debug] templates dir={(BASE_DIR / "templates").exists()}')
+    print(f'[debug] login.html={(BASE_DIR / "templates" / "registration" / "login.html").exists()}')
 
 # Data directory for writable files (DB, logs)
 if _FROZEN:
