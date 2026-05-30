@@ -8,20 +8,24 @@ block_cipher = None
 
 PROJ = Path(__file__).parent.resolve()
 
-# Validate required files
-required_dirs = ['conf', 'core', 'templates']
-for d in required_dirs:
+# Validate required dirs
+for d in ['conf', 'core', 'templates']:
     if not (PROJ / d).is_dir():
         warnings.warn(f'Missing directory: {PROJ / d}')
-
-db = PROJ / 'db.sqlite3'
 
 # Migrate + collectstatic before bundling
 python = sys.executable
 manage = str(PROJ / 'manage.py')
-subprocess.run([python, manage, 'migrate', '--noinput'], check=True, cwd=str(PROJ))
-subprocess.run([python, manage, 'collectstatic', '--noinput'], check=True, cwd=str(PROJ))
 
+result = subprocess.run([python, manage, 'migrate', '--noinput'], cwd=str(PROJ))
+if result.returncode != 0:
+    raise SystemExit('migrate failed — aborting build')
+
+result = subprocess.run([python, manage, 'collectstatic', '--noinput'], cwd=str(PROJ))
+if result.returncode != 0:
+    raise SystemExit('collectstatic failed — aborting build')
+
+db = PROJ / 'db.sqlite3'
 if not db.exists():
     raise SystemExit(
         f'ERROR: {db} not found.\n'
@@ -50,6 +54,7 @@ a = Analysis(
         'django.template.loaders.app_directories',
         'core',
         'core.migrations',
+        'core.middleware',
         'template_partials',
         'template_partials.templatetags.partials',
     ],
