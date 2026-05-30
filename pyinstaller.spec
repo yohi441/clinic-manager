@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-import os
+import subprocess
 import sys
 import warnings
 from pathlib import Path
@@ -16,8 +16,11 @@ for d in required_dirs:
 
 db = PROJ / 'db.sqlite3'
 
-# Run migrations to ensure DB schema is up to date before bundling
-os.system(f'{sys.executable} "{PROJ / "manage.py"}" migrate --noinput')
+# Migrate + collectstatic before bundling
+python = sys.executable
+manage = str(PROJ / 'manage.py')
+subprocess.run([python, manage, 'migrate', '--noinput'], check=True, cwd=str(PROJ))
+subprocess.run([python, manage, 'collectstatic', '--noinput'], check=True, cwd=str(PROJ))
 
 if not db.exists():
     raise SystemExit(
