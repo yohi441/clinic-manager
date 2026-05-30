@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %} 
+
+<!-- Patients Section -->
+<section>
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Patients</h1>
+      <p class="text-sm text-slate-500 mt-1">Manage patient records and prescriptions</p>
+    </div>
+    <button class="flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors shadow-sm"
+      hx-get="/patients/form/" hx-target="#modal-container" hx-swap="innerHTML"
+      @click="modalOpen = true">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add Patient
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap items-center gap-3 mb-4">
+    <select name="gender" class="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+      hx-get="/patients/table/" hx-trigger="change" hx-target="#patient-table-container" hx-swap="innerHTML" hx-include="[name='q'], [name='status']">
+      <option value="all">All Genders</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+    </select>
+    <select name="status" class="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+      hx-get="/patients/table/" hx-trigger="change" hx-target="#patient-table-container" hx-swap="innerHTML" hx-include="[name='q'], [name='gender']">
+      <option value="all">All Status</option>
+      <option value="Consultation">Consultation</option>
+      <option value="Fitting">Fitting</option>
+      <option value="In Production">In Production</option>
+      <option value="Ready">Ready</option>
+      <option value="Completed">Completed</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden" id="patient-table-container">
+    {% partialdef patient_table inline %}
+    {% include "partials/patient_table.html" %}
+    {% endpartialdef %}
+  </div>
+</section>
+{% endblock %}

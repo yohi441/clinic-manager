@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}OptiCare — Optical Clinic Management{% endblock %}</title>
+  <script src="{% static 'vendor/js/tailwind.min.js' %}"></script>
+  <script src="{% static 'vendor/js/htmx.min.js' %}"></script>
+  <script defer src="{% static 'vendor/js/alpine.min.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'vendor/css/inter.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/css/flatpickr.min.css' %}">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+    .flatpickr-calendar { font-size: 13px; }
+    .flatpickr-day { max-width: 30px; height: 30px; line-height: 30px; }
+    .flatpickr-months .flatpickr-month { height: 50px; }
+    .flatpickr-current-month .flatpickr-monthDropdown-months,
+    .flatpickr-current-month input.cur-year { font-size: 12px; }
+    [x-cloak] { display: none !important; }
+  </style>
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' }
+          }
+        }
+      }
+    }
+    document.addEventListener('htmx:configRequest', (e) => {
+      e.detail.headers['X-CSRFToken'] = document.querySelector('meta[name="csrf-token"]')?.content;
+    });
+    document.addEventListener('htmx:afterSwap', (e) => {
+      if (typeof Alpine !== 'undefined') {
+        Alpine.initTree(e.detail.elt);
+      }
+    });
+  </script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}bg-slate-50 text-slate-800 antialiased{% endblock %}"
+      x-data="{ modalOpen: false }"
+      @htmx:after-request.window="if($event.detail.successful && $event.detail.target.id === 'patient-table-container') modalOpen = false">
+  {% block sidebar %}
+  {% include "partials/sidebar.html" %}
+  {% endblock %}
+
+  {% block layout %}
+  <div class="lg:ml-64 min-h-screen">
+    {% block header %}
+    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-sm border-b border-slate-200">
+      <div class="flex items-center justify-between px-4 sm:px-6 h-16">
+        <div class="flex items-center gap-4">
+          {% if '/patients/list/' in request.path %}
+          <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" name="q" placeholder="Search patients..." class="pl-9 pr-4 py-2 w-64 bg-slate-100 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:bg-white transition-all"
+              hx-get="/patients/table/" hx-trigger="input changed delay:300ms" hx-target="#patient-table-container" hx-swap="innerHTML" hx-include="[name='gender'], [name='status']">
+          </div>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="p-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+            hx-get="/patients/form/" hx-target="#modal-container" hx-swap="innerHTML"
+            @click="modalOpen = true">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+    {% endblock %}
+
+    <main class="{% block main_class %}p-4 sm:p-6 space-y-6{% endblock %}">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% endblock %}
+
+  {% block modal_container %}
+  <div id="modal-container" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center"
+       x-show="modalOpen" @click="modalOpen = false" x-cloak>
+  </div>
+  {% endblock %}
+
+  <script src="{% static 'vendor/js/flatpickr.min.js' %}"></script>
+  <script>
+    function initDatepickers(root) {
+      root.querySelectorAll('.datepicker').forEach(el => {
+        if (el._flatpickr) return;
+        flatpickr(el, { allowInput: true, dateFormat: 'Y-m-d' });
+      });
+    }
+    document.addEventListener('DOMContentLoaded', () => initDatepickers(document));
+    document.addEventListener('htmx:afterSwap', (e) => initDatepickers(e.detail.elt));
+  </script>
+  {% block extra_scripts %}{% endblock %}
+  <style>
+    .slide-in { animation: slideIn 0.2s ease-out; }
+    @keyframes slideIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  </style>
+</body>
+</html>
