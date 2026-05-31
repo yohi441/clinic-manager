@@ -431,8 +431,17 @@ def patient_delete(request, pk):
 
 @login_required
 def dashboard_recent(request):
-    recent = Patient.objects.all().order_by('-created_at')[:5]
-    return render(request, 'dashboard.html#dashboard_recent', {
+    patients = Patient.objects.all().order_by('-created_at')
+    total_patients = patients.count()
+    new_patients_today = Patient.objects.filter(created_at__date=date.today()).count()
+    orders_in_production = Patient.objects.filter(status='In Production').count()
+    ready_count = Patient.objects.filter(status='Ready').count()
+    recent = patients[:8]
+    return render(request, 'dashboard.html#dashboard_content', {
+        'total_patients': total_patients,
+        'new_patients_today': new_patients_today,
+        'orders_in_production': orders_in_production,
+        'ready_count': ready_count,
         'recent_patients': recent,
     })
 
