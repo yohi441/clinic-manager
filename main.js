@@ -1,5 +1,5 @@
 const { app, BrowserWindow, Menu } = require('electron');
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const net = require('net');
@@ -7,6 +7,28 @@ const http = require('http');
 
 let mainWindow;
 let backendProcess;
+
+function killBackend() {
+  if (!backendProcess) return;
+  try {
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/F', '/T', '/PID', String(backendProcess.pid)], {
+        stdio: 'ignore', windowsHide: true,
+      });
+    } else {
+      backendProcess.kill('SIGTERM');
+    }
+  } catch (_) {}
+  backendProcess = null;
+}
+
+function cleanupOrphans() {
+  try {
+    if (process.platform === 'win32') {
+      execSync('taskkill /F /IM clinic-backend.exe 2>nul', { stdio: 'ignore' });
+    }
+  } catch (_) {}
+}
 
 function getFreePort() {
   return new Promise((resolve, reject) => {
@@ -33,6 +55,8 @@ function waitForServer(port, retries = 30) {
 }
 
 app.whenReady().then(async () => {
+  cleanupOrphans();
+
   const port = await getFreePort();
   const isDev = !app.isPackaged;
   const ext = process.platform === 'win32' ? '.exe' : '';
@@ -92,7 +116,6 @@ app.whenReady().then(async () => {
   mainWindow.on('closed', () => { mainWindow = null; });
 });
 
-app.on('window-all-closed', () => {
-  if (backendProcess) { backendProcess.kill(); }
-  app.quit();
-});
+app.on('before-quit', killBackend);
+app.on('will-quit', killBackend);
+process.on('exit', killBackend);
