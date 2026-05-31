@@ -83,9 +83,20 @@ p { font-size: 13px; color: #64748b; }
 </head>
 <body>
 <div class="container">
+  <svg width="140" height="36" viewBox="0 0 200 50" style="margin:0 auto 16px">
+    <defs>
+      <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#0d9488"/>
+        <stop offset="100%" stop-color="#0f766e"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="22" cy="23" rx="20" ry="13" fill="none" stroke="url(#g)" stroke-width="3.5"/>
+    <circle cx="22" cy="23" r="6" fill="url(#g)"/>
+    <circle cx="22" cy="23" r="2.5" fill="#fff"/>
+    <text x="52" y="32" font-family="Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="22" font-weight="700" fill="#1e293b">OptiCare</text>
+  </svg>
   <div class="spinner" id="spinner"></div>
-  <h1>Starting OptiCare</h1>
-  <p id="status">Initializing backend server…</p>
+  <p id="status">Loading application…</p>
   <div id="error"></div>
 </div>
 </body>
@@ -107,7 +118,10 @@ app.whenReady().then(async () => {
   });
 
   mainWindow.loadURL(loadingDataURL);
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.setTitle('OptiCare — built by yohi');
+    mainWindow.show();
+  });
   mainWindow.on('closed', () => { mainWindow = null; });
 
   cleanupOrphans();
