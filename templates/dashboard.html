@@ -56,7 +56,7 @@
       <h3 class="font-semibold text-slate-800">Recent Patients</h3>
       <a href="{% url 'patient-list' %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium">View All</a>
     </div>
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto min-h-[400px]">
       <table class="w-full text-sm">
         <thead>
           <tr class="text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -70,11 +70,11 @@
         <tbody id="dashboard-recent-table" class="divide-y divide-slate-100">
           {% partialdef dashboard_recent inline %}
           {% for p in recent_patients %}
-          <tr class="hover:bg-slate-50 transition-colors cursor-pointer"
-            hx-get="/patients/{{ p.id }}/detail/" hx-target="#modal-container" hx-swap="innerHTML"
-            @click="modalOpen = true">
+          <tr class="hover:bg-slate-50 transition-colors">
             <td class="px-6 py-3">
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3 cursor-pointer"
+              hx-get="/patients/{{ p.id }}/detail/" hx-target="#modal-container" hx-swap="innerHTML"
+            @click="modalOpen = true">
                 <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-xs font-bold text-primary-700">{{ p.first_name|first|upper }}{{ p.last_name|first|upper }}</div>
                 <span class="font-medium text-slate-800">{{ p.first_name }} {{ p.last_name }}</span>
               </div>
@@ -109,6 +109,8 @@
               </div>
             </td>
           </tr>
+          {% empty %}
+          <tr><td colspan="9" class="px-6 py-12 text-center text-slate-400">No patients found</td></tr> 
           {% endfor %}
           {% endpartialdef %}
         </tbody>
