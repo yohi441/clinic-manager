@@ -85,3 +85,19 @@ class Patient(models.Model):
         return today.year - self.date_of_birth.year - (
             (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )
+
+
+class ClinicSetting(models.Model):
+    clinic_name = models.CharField(max_length=200, default='Eye Clinic')
+
+    class Meta:
+        verbose_name = 'Clinic Setting'
+        verbose_name_plural = 'Clinic Settings'
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return self.clinic_name

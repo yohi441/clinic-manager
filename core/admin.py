@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from .models import LensType, Patient, UserProfile
+from .models import ClinicSetting, LensType, Patient, UserProfile
 
 
 class UserProfileInline(admin.StackedInline):
@@ -26,5 +26,6 @@ class LensTypeAdmin(admin.ModelAdmin):
 class PatientAdmin(admin.ModelAdmin):
     pass
 
-
-
+@admin.register(ClinicSetting)
+class ClinicSettingAdmin(admin.ModelAdmin):
+    pass
