@@ -21,7 +21,7 @@
     "extraResources": [
       {
         "from": "dist/clinic-backend.exe",
-        "to": "backend"
+        "to": "backend/"
       }
     ],
     "win": {

@@ -45,6 +45,7 @@ app.whenReady().then(async () => {
     // Prefer the built exe, fall back to python manage.py
     const exePath = path.join(__dirname, 'dist', `clinic-backend${ext}`);
     if (fs.existsSync(exePath)) {
+      console.log(`[electron] Resolved backend path: ${exePath}`);
       console.log(`[electron] Using built exe: ${exePath}`);
       backendPath = exePath;
       args = ['runserver', `127.0.0.1:${port}`, '--noreload'];
@@ -56,6 +57,7 @@ app.whenReady().then(async () => {
     }
   } else {
     backendPath = path.join(process.resourcesPath, 'backend', `clinic-backend${ext}`);
+    console.log(`[electron] Resolved backend path: ${backendPath}`);
     args = ['runserver', `127.0.0.1:${port}`, '--noreload'];
   }
 
