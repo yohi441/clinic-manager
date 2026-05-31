@@ -124,7 +124,7 @@
 </section>
 
 <!-- Search Results (populated via header search) -->
-<section id="patient-table-container"></section>
+<section x-show="false" id="patient-table-container"></section>
 
 {% endblock %}
 
@@ -133,7 +133,7 @@
 {% endpartialdef %}
 
 {% partialdef patient_form %}
-<div class="bg-white rounded-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto slide-in" @click.stop>
+<div class=" bg-white rounded-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto slide-in" @click.stop>
   <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
     <h3 class="text-lg font-bold text-slate-800">{{ legend }}</h3>
     <button @click="modalOpen = false" class="p-1 rounded-lg hover:bg-slate-100 transition-colors">
