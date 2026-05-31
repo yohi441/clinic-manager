@@ -12,7 +12,7 @@ function killBackend() {
   if (!backendProcess) return;
   try {
     if (process.platform === 'win32') {
-      spawn('taskkill', ['/F', '/T', '/PID', String(backendProcess.pid)], {
+      execSync(`taskkill /F /T /PID ${backendProcess.pid}`, {
         stdio: 'ignore', windowsHide: true,
       });
     } else {
@@ -54,7 +54,62 @@ function waitForServer(port, retries = 30) {
   });
 }
 
+function loadingPageHTML() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starting…</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc; display: flex; align-items: center; justify-content: center;
+  height: 100vh; color: #1e293b;
+}
+.container { text-align: center; }
+.spinner {
+  width: 40px; height: 40px; margin: 0 auto 20px;
+  border: 4px solid #e2e8f0; border-top-color: #0d9488;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+h1 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+p { font-size: 13px; color: #64748b; }
+#error { display: none; margin-top: 16px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px; }
+#error.show { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="spinner" id="spinner"></div>
+  <h1>Starting OptiCare</h1>
+  <p id="status">Initializing backend server…</p>
+  <div id="error"></div>
+</div>
+</body>
+</html>`;
+}
+
 app.whenReady().then(async () => {
+  const loadingHTML = loadingPageHTML();
+  const loadingDataURL = `data:text/html;charset=utf-8,${encodeURIComponent(loadingHTML)}`;
+
+  Menu.setApplicationMenu(null);
+
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    autoHideMenuBar: true,
+    show: false,
+    webPreferences: { nodeIntegration: false, contextIsolation: true },
+  });
+
+  mainWindow.loadURL(loadingDataURL);
+  mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.on('closed', () => { mainWindow = null; });
+
   cleanupOrphans();
 
   const port = await getFreePort();
@@ -66,10 +121,8 @@ app.whenReady().then(async () => {
   let cwd;
 
   if (isDev) {
-    // Prefer the built exe, fall back to python manage.py
     const exePath = path.join(__dirname, 'dist', `clinic-backend${ext}`);
     if (fs.existsSync(exePath)) {
-      console.log(`[electron] Resolved backend path: ${exePath}`);
       console.log(`[electron] Using built exe: ${exePath}`);
       backendPath = exePath;
       args = ['runserver', `127.0.0.1:${port}`, '--noreload'];
@@ -81,14 +134,27 @@ app.whenReady().then(async () => {
     }
   } else {
     backendPath = path.join(process.resourcesPath, 'backend', `clinic-backend${ext}`);
-    console.log(`[electron] Resolved backend path: ${backendPath}`);
     args = ['runserver', `127.0.0.1:${port}`, '--noreload'];
   }
+
+  console.log(`[electron] Spawning: ${backendPath} ${args.join(' ')}`);
 
   backendProcess = spawn(backendPath, args, { cwd, stdio: 'pipe' });
 
   backendProcess.stdout.on('data', (d) => console.log(`[backend] ${d}`));
   backendProcess.stderr.on('data', (d) => console.error(`[backend] ${d}`));
+
+  function showError(msg) {
+    try {
+      mainWindow.webContents.executeJavaScript(`
+        document.getElementById('spinner').style.display = 'none';
+        document.getElementById('status').textContent = 'Failed to start';
+        var e = document.getElementById('error');
+        e.textContent = ${JSON.stringify(msg)};
+        e.className = 'show';
+      `);
+    } catch (_) {}
+  }
 
   try {
     await Promise.race([
@@ -99,21 +165,11 @@ app.whenReady().then(async () => {
     ]);
   } catch (err) {
     console.error('Failed to start backend:', err);
-    app.quit();
+    showError(err.message);
     return;
   }
 
-  Menu.setApplicationMenu(null);
-
-  mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    autoHideMenuBar: true,
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
-  });
-
   mainWindow.loadURL(`http://127.0.0.1:${port}/`);
-  mainWindow.on('closed', () => { mainWindow = null; });
 });
 
 app.on('before-quit', killBackend);
