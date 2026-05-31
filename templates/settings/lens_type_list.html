@@ -10,7 +10,7 @@
   </div>
 
   <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
-    <form method="post" action="{% url 'lens-type-create' %}" class="flex gap-3 items-end">
+    <form x-data @clear-lens-type-form.window="$el.reset()" hx-post="{% url 'lens-type-create' %}" hx-target="#lens-type-table-container" hx-swap="outerHTML" class="flex gap-3 items-end">
       {% csrf_token %}
       <div class="flex-1">
         <label class="block text-xs font-medium text-slate-600 mb-1">Lens Type Name</label>
@@ -22,7 +22,8 @@
     </form>
   </div>
 
-  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+  {% partialdef lens_type_table inline %}
+  <div id="lens-type-table-container" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
     <table class="w-full text-sm">
       <thead>
         <tr class="text-left text-xs font-semibold uppercase tracking-wider text-slate-400 bg-slate-50">
@@ -48,12 +49,10 @@
                 @click="modalOpen = true">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               </button>
-              <form method="post" action="{% url 'lens-type-toggle' t.id %}" class="inline">
-                {% csrf_token %}
-                <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-amber-600 transition-colors" title="Toggle Active">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                </button>
-              </form>
+              <button class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-amber-600 transition-colors" title="Toggle Active"
+                hx-post="{% url 'lens-type-toggle' t.id %}" hx-target="#lens-type-table-container" hx-swap="outerHTML">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </button>
             </div>
           </td>
         </tr>
@@ -63,5 +62,6 @@
       </tbody>
     </table>
   </div>
+  {% endpartialdef %}
 </section>
 {% endblock %}

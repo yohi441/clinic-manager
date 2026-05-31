@@ -46,7 +46,8 @@
 </head>
 <body class="{% block body_class %}bg-slate-50 text-slate-800 antialiased{% endblock %}"
       x-data="{ modalOpen: false }"
-      @htmx:after-request.window="if($event.detail.successful && $event.detail.target.id === 'patient-table-container') modalOpen = false">
+      x-init="$watch('modalOpen', val => { if (!val) document.getElementById('modal-container').innerHTML = '' })"
+      @htmx:after-request.window="if($event.detail.successful && ['patient-table-container','lens-type-table-container','staff-table-container'].includes($event.detail.target.id)) modalOpen = false">
   {% block sidebar %}
   {% include "partials/sidebar.html" %}
   {% endblock %}
@@ -87,6 +88,21 @@
        x-show="modalOpen" @click="modalOpen = false" x-cloak>
   </div>
   {% endblock %}
+
+  <!-- Global Toast -->
+  <div x-data="{ toastMsg: '', toastType: 'success', toastShow: false }"
+       @show-message.window="toastMsg = $event.detail.text; toastType = $event.detail.type; toastShow = true; setTimeout(() => toastShow = false, 3000)"
+       x-show="toastShow" x-cloak
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="translate-x-8 opacity-0"
+       x-transition:enter-end="translate-x-0 opacity-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="translate-x-0 opacity-100"
+       x-transition:leave-end="translate-x-8 opacity-0"
+       class="fixed top-4 right-4 z-[100] px-5 py-3 rounded-xl border shadow-lg text-sm font-medium max-w-sm"
+       :class="toastType === 'success' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-red-700 bg-red-50 border-red-200'"
+       x-text="toastMsg">
+  </div>
 
   <script src="{% static 'vendor/js/flatpickr.min.js' %}"></script>
   <script>
